@@ -7,6 +7,6 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class CreateUserRequest {
-    private String email;
+public class CreateCityRequest {
+    private String name;
 }

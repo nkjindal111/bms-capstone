@@ -5,8 +5,10 @@ import com.scaler.bms.dtos.CreateUserRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 
+@SpringBootApplication
 public class BMSApplication implements CommandLineRunner {
 
     private UserController userController;
@@ -22,9 +24,9 @@ public class BMSApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        CreateUserRequest requestDto = new CreateUserRequest();
+        /*CreateUserRequest requestDto = new CreateUserRequest();
         requestDto.setEmail("nkjindal111@gmail.com");
 
-        this.userController.createUser(requestDto);
+        this.userController.createUser(requestDto);*/
     }
 }
