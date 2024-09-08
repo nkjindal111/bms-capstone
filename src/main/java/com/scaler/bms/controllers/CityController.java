@@ -30,4 +30,5 @@ public class CityController {
         logger.info("City added :: {}", request.getName());
         return city;
     }
+
 }

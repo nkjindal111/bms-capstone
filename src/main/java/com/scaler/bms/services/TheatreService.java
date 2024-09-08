@@ -81,6 +81,9 @@ public class TheatreService {
         Audi savedAudi = audiRepository.save(audi);
         logger.info("Audi created with id: {}", savedAudi.getId());
 
+        if (theatre.getAudis() == null) {
+            theatre.setAudis(new ArrayList<>());
+        }
         theatre.getAudis().add(savedAudi);
         Theatre updatedTheatre = theatreRepository.save(theatre);
         logger.info("Audi with id {} added to theatre with id {}", savedAudi.getId(), theatreId);
