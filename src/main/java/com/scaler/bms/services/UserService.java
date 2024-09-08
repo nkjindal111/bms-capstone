@@ -22,15 +22,17 @@ public class UserService {
 
     public User createUser(String email) {
         logger.info("Creating user with email: {}", email);
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        if (optionalUser.isPresent()) {
-            logger.error("User already exists with email: {}. skipping creating new user", email);
-            return optionalUser.get();
-        }
-        User user = new User();
-        user.setEmail(email);
-        User savedUser = userRepository.save(user);
-        logger.info("User created successfully with id: {} and email: {}", savedUser.getId(), savedUser.getEmail());
-        return savedUser;
+        return userRepository.findByEmail(email)
+                .map(existingUser -> {
+                    logger.error("User already exists with email: {}. Skipping creating new user", email);
+                    return existingUser;
+                })
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setEmail(email);
+                    User savedUser = userRepository.save(newUser);
+                    logger.info("User created successfully with id: {} and email: {}", savedUser.getId(), savedUser.getEmail());
+                    return savedUser;
+                });
     }
 }

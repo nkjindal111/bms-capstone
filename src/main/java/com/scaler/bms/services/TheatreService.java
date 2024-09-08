@@ -37,68 +37,96 @@ public class TheatreService {
         logger.info("{} is initialized", this.getClass().getName());
     }
 
-    public Theatre createTheatre(
-            String name,
-            String address,
-            Long cityId
-    ) throws EntityNotFoundException {
+    public Theatre createTheatre(String name, String address, Long cityId) throws EntityNotFoundException {
         logger.info("Creating theatre with name: {}, address: {}, cityId: {}", name, address, cityId);
+        City city = getCityById(cityId);
+        Theatre theatre = saveTheatre(name, address);
+        addTheatreToCity(city, theatre);
+        return theatre;
+    }
+
+    private City getCityById(Long cityId) throws EntityNotFoundException {
         Optional<City> cityOptional = cityRepository.findById(cityId);
         if (cityOptional.isEmpty()) {
             logger.error("City with id {} not found", cityId);
             throw new EntityNotFoundException(EntityType.CITY, "City with id " + cityId + " not found");
         }
+        return cityOptional.get();
+    }
 
+    private Theatre saveTheatre(String name, String address) {
         Theatre theatre = new Theatre();
         theatre.setName(name);
         theatre.setAddress(address);
         Theatre savedTheatre = theatreRepository.save(theatre);
         logger.info("Theatre created with id: {}", savedTheatre.getId());
-
-        City dbCity = cityOptional.get();
-        if (dbCity.getTheatres() == null) {
-            dbCity.setTheatres(new ArrayList<>());
-        }
-        dbCity.getTheatres().add(savedTheatre);
-        cityRepository.save(dbCity);
-        logger.info("Theatre with id {} added to city with id {}", savedTheatre.getId(), cityId);
-
         return savedTheatre;
+    }
+
+    private void addTheatreToCity(City city, Theatre theatre) {
+        if (city.getTheatres() == null) {
+            city.setTheatres(new ArrayList<>());
+        }
+        city.getTheatres().add(theatre);
+        cityRepository.save(city);
+        logger.info("Theatre with id {} added to city with id {}", theatre.getId(), city.getId());
     }
 
     public Theatre addAudi(Long theatreId, String name, int capacity) throws EntityNotFoundException {
         logger.info("Adding Audi with name: {}, capacity: {} to theatreId: {}", name, capacity, theatreId);
-        Theatre theatre = theatreRepository.findById(theatreId).orElse(null);
-        if (theatre == null) {
-            logger.error("Theatre with id {} not found", theatreId);
-            throw new EntityNotFoundException(EntityType.THEATER, "Theatre with id " + theatreId + " not found");
-        }
+        Theatre theatre = getTheatreById(theatreId);
+        Audi savedAudi = saveAudi(name, capacity, theatre);
+        addAudiToTheatre(theatre, savedAudi);
+        return theatre;
+    }
 
+    private Theatre getTheatreById(Long theatreId) throws EntityNotFoundException {
+        return theatreRepository.findById(theatreId)
+                .orElseThrow(() -> {
+                    logger.error("Theatre with id {} not found", theatreId);
+                    return new EntityNotFoundException(EntityType.THEATER, "Theatre with id " + theatreId + " not found");
+                });
+    }
+
+    private Audi saveAudi(String name, int capacity, Theatre theatre) {
         Audi audi = new Audi();
         audi.setName(name);
         audi.setCapacity(capacity);
         audi.setTheatre(theatre);
         Audi savedAudi = audiRepository.save(audi);
         logger.info("Audi created with id: {}", savedAudi.getId());
+        return savedAudi;
+    }
 
+    private void addAudiToTheatre(Theatre theatre, Audi savedAudi) {
         if (theatre.getAudis() == null) {
             theatre.setAudis(new ArrayList<>());
         }
         theatre.getAudis().add(savedAudi);
-        Theatre updatedTheatre = theatreRepository.save(theatre);
-        logger.info("Audi with id {} added to theatre with id {}", savedAudi.getId(), theatreId);
-
-        return updatedTheatre;
+        theatreRepository.save(theatre);
+        logger.info("Audi with id {} added to theatre with id {}", savedAudi.getId(), theatre.getId());
     }
 
     public void addSeats(Long audiId, Map<SeatType, Integer> seatCount) throws EntityNotFoundException {
         logger.info("Adding seats to audiId: {}, seatCount: {}", audiId, seatCount);
-        Audi audi = audiRepository.findById(audiId).orElse(null);
-        if (audi == null) {
-            logger.error("Audi with id {} not found", audiId);
-            throw new EntityNotFoundException(EntityType.AUDI, "Audi with id " + audiId + " not found");
-        }
+        Audi audi = getAudiById(audiId);
+        List<Seat> seats = createSeats(seatCount);
+        List<Seat> savedSeats = seatRepository.saveAll(seats);
+        logger.info("Seats saved: {}", savedSeats);
+        audi.setSeats(savedSeats);
+        audiRepository.save(audi);
+        logger.info("Seats added successfully to audiId: {}", audiId);
+    }
 
+    private Audi getAudiById(Long audiId) throws EntityNotFoundException {
+        return audiRepository.findById(audiId)
+                .orElseThrow(() -> {
+                    logger.error("Audi with id {} not found", audiId);
+                    return new EntityNotFoundException(EntityType.AUDI, "Audi with id " + audiId + " not found");
+                });
+    }
+
+    private List<Seat> createSeats(Map<SeatType, Integer> seatCount) {
         List<Seat> seats = new ArrayList<>();
         for (Map.Entry<SeatType, Integer> entry : seatCount.entrySet()) {
             for (int i = 0; i < entry.getValue(); ++i) {
@@ -108,12 +136,6 @@ public class TheatreService {
                 seats.add(seat);
             }
         }
-
-        List<Seat> savedSeats = seatRepository.saveAll(seats);
-        logger.info("Seats saved: {}", savedSeats);
-
-        audi.setSeats(savedSeats);
-        audiRepository.save(audi);
-        logger.info("Seats added successfully to audiId: {}", audiId);
+        return seats;
     }
 }

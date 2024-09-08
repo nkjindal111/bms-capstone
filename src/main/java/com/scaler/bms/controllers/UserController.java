@@ -1,7 +1,6 @@
 package com.scaler.bms.controllers;
 
 import com.scaler.bms.dtos.CreateUserRequest;
-import com.scaler.bms.dtos.CreateUserResponse;
 import com.scaler.bms.models.User;
 import com.scaler.bms.services.UserService;
 import org.slf4j.Logger;
@@ -26,13 +25,10 @@ public class UserController {
     }
 
     @PostMapping()
-    public @ResponseBody CreateUserResponse createUser(@RequestBody CreateUserRequest request) {
+    public @ResponseBody User createUser(@RequestBody CreateUserRequest request) {
         logger.info("Request received :: {}", request);
-        User savedUser = null;
-        savedUser = userService.createUser(request.getEmail());
+        User savedUser = userService.createUser(request.getEmail());
         logger.info("User created :: {}", savedUser.getEmail());
-        CreateUserResponse response = new CreateUserResponse();
-        response.setUser(savedUser);
-        return response;
+        return savedUser;
     }
 }
