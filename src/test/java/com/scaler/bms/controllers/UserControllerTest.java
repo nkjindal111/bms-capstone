@@ -1,25 +1,26 @@
 package com.scaler.bms.controllers;
 
 import com.scaler.bms.dtos.CreateUserRequest;
-import com.scaler.bms.dtos.CreateUserResponse;
 import com.scaler.bms.models.User;
 import com.scaler.bms.services.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
-
+@WebMvcTest(UserController.class)
 class UserControllerTest {
-    @Mock
+    @MockBean
     private UserService userService;
 
-    @InjectMocks
-    private UserController userController;
+    @Autowired
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
@@ -27,20 +28,21 @@ class UserControllerTest {
     }
 
     @Test
-    void createUser_ShouldCreateUser() {
+    void createUser_ShouldCreateUser() throws Exception {
         CreateUserRequest request = new CreateUserRequest();
         request.setEmail("test@example.com");
 
         User mockUser = new User();
         mockUser.setEmail("test@example.com");
 
-        when(userService.createUser("test@example.com")).thenReturn(mockUser);
+        Mockito.when(userService.createUser("test@example.com")).thenReturn(mockUser);
 
-        CreateUserResponse response = userController.createUser(request);
+        mockMvc.perform(MockMvcRequestBuilders.post("/bms/user")
+                        .contentType("application/json")
+                        .content("{\"email\":\"test@example.com\"}"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.user.email").value("test@example.com"));
 
-        assertNotNull(response);
-        assertNotNull(response.getUser());
-        assertEquals("test@example.com", response.getUser().getEmail());
-        verify(userService, times(1)).createUser("test@example.com");
+        Mockito.verify(userService, Mockito.times(1)).createUser("test@example.com");
     }
 }

@@ -1,40 +1,43 @@
-// src/test/java/com/scaler/bms/controllers/TheatreControllerTest.java
 package com.scaler.bms.controllers;
 
 import com.scaler.bms.dtos.AddAudiRequest;
 import com.scaler.bms.dtos.CreateTheaterRequest;
-import com.scaler.bms.exceptions.EntityNotFoundException;
 import com.scaler.bms.models.SeatType;
 import com.scaler.bms.models.Theatre;
 import com.scaler.bms.services.TheatreService;
+import com.scaler.bms.services.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
-
+@WebMvcTest(controllers = {TheatreController.class, UserController.class})
 class TheatreControllerTest {
 
-    @Mock
+    @MockBean
     private TheatreService theatreService;
 
-    @InjectMocks
-    private TheatreController theatreController;
+    @MockBean
+    private UserService userService;
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
-
     @Test
-    void createTheatre_ShouldCreateTheatre() throws EntityNotFoundException {
+    void createTheatre_ShouldCreateTheatre() throws Exception {
         Long cityId = 1L;
         CreateTheaterRequest request = new CreateTheaterRequest();
         request.setName("Test Theatre");
@@ -46,16 +49,18 @@ class TheatreControllerTest {
 
         when(theatreService.createTheatre("Test Theatre", "123 Test St", cityId)).thenReturn(mockTheatre);
 
-        Theatre result = theatreController.createTheatre(cityId, request);
+        mockMvc.perform(MockMvcRequestBuilders.post("/bms/city/{cityId}/theater", cityId)
+                        .contentType("application/json")
+                        .content("{\"name\":\"Test Theatre\", \"address\":\"123 Test St\"}"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("Test Theatre"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.address").value("123 Test St"));
 
-        assertNotNull(result);
-        assertEquals("Test Theatre", result.getName());
-        assertEquals("123 Test St", result.getAddress());
         verify(theatreService, times(1)).createTheatre("Test Theatre", "123 Test St", cityId);
     }
 
     @Test
-    void addAudi_ShouldAddAudi() throws EntityNotFoundException {
+    void addAudi_ShouldAddAudi() throws Exception {
         Long theatreId = 1L;
         AddAudiRequest request = new AddAudiRequest();
         request.setName("Audi 1");
@@ -64,21 +69,26 @@ class TheatreControllerTest {
         Theatre mockTheatre = new Theatre();
         when(theatreService.addAudi(theatreId, "Audi 1", 100)).thenReturn(mockTheatre);
 
-        Theatre result = theatreController.addAudi(theatreId, request);
+        mockMvc.perform(MockMvcRequestBuilders.post("/bms/theater/{theatreId}/audi", theatreId)
+                        .contentType("application/json")
+                        .content("{\"name\":\"Audi 1\", \"capacity\":100}"))
+                .andExpect(MockMvcResultMatchers.status().isOk());
 
-        assertNotNull(result);
         verify(theatreService, times(1)).addAudi(theatreId, "Audi 1", 100);
     }
 
     @Test
-    void addSeats_ShouldAddSeats() throws EntityNotFoundException {
+    void addSeats_ShouldAddSeats() throws Exception {
         Long audiId = 1L;
         Map<SeatType, Integer> seatCount = new HashMap<>();
         seatCount.put(SeatType.REGULAR, 10);
 
         doNothing().when(theatreService).addSeats(audiId, seatCount);
 
-        theatreController.addSeats(audiId, seatCount);
+        mockMvc.perform(MockMvcRequestBuilders.post("/bms/audi/{audiId}/seats", audiId)
+                        .contentType("application/json")
+                        .content("{\"REGULAR\":10}"))
+                .andExpect(MockMvcResultMatchers.status().isOk());
 
         verify(theatreService, times(1)).addSeats(audiId, seatCount);
     }

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-@RequestMapping("/bms")
+@RequestMapping("/bms/user")
 public class UserController {
     private final UserService userService;
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -25,7 +25,7 @@ public class UserController {
         logger.info("{} is initialized", this.getClass().getName());
     }
 
-    @PostMapping("/user")
+    @PostMapping()
     public @ResponseBody CreateUserResponse createUser(@RequestBody CreateUserRequest request) {
         logger.info("Request received :: {}", request);
         User savedUser = null;
