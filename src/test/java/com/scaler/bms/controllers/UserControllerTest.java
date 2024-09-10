@@ -41,7 +41,7 @@ class UserControllerTest {
                         .contentType("application/json")
                         .content("{\"email\":\"test@example.com\"}"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.user.email").value("test@example.com"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.email").value("test@example.com"));
 
         Mockito.verify(userService, Mockito.times(1)).createUser("test@example.com");
     }
