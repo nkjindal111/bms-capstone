@@ -38,10 +38,8 @@ cd bms-capstone
 ```
 
 #### 2. Configure the Database
-
+Update the database configuration in src/main/resources/application.properties:
 ```bash
-- Update the database configuration in src/main/resources/application.properties:
-
 spring.datasource.url=jdbc:postgresql://localhost:5432/bms
 spring.datasource.username=postgres
 spring.datasource.password=password
