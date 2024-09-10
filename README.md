@@ -55,8 +55,7 @@ mvn clean package -DskipTests
 #### 4. Run the Application
 
 ```bash
-docker build -t bms-capstone .
-docker run -p 8080:8080 bms-capstone
+java -jar target/bms-capstone-0.0.1-SNAPSHOT.jar
 ```
 #### Running Tests
 
